@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ruby Electronics</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  background: #f1f5f9;
+}
+
+header {
+  background: linear-gradient(90deg,#0ea5e9,#0284c7);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.container {
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 10px;
+}
+
+.card h4 {
+  margin: 5px 0;
+  font-size: 15px;
+}
+
+.price {
+  color: #0ea5e9;
+  font-weight: bold;
+}
+
+.qty {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.qty button {
+  padding: 5px 10px;
+  border: none;
+  background: #0ea5e9;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cart {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  padding: 12px;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+}
+
+.total {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 48%;
+  padding: 10px;
+  margin: 5px 1%;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.order-btn {
+  width: 100%;
+  padding: 14px;
+  background: #22c55e;
+  color: white;
+  border: none;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.order-btn:hover {
+  background: #16a34a;
+}
+</style>
+</head>
+
+<body>
+
+<header>Ruby Electronics</header>
+
+<div class="container" id="items"></div>
+
+<div class="cart">
+  <div class="total">Total: ₹<span id="total">0</span></div>
+
+  <input id="name" placeholder="Your Name">
+  <input id="mobile" placeholder="Mobile Number">
+
+  <button class="order-btn" onclick="placeOrder()">Place Order</button>
+</div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbzCsOlW9knh_MF2sF_k0sesgeB7KvgS3oQhx3hydoLfKkIH8GSZxZ8nGPN-V_DydE-Uig/exec";
+const WHATSAPP_NUMBER = "917838837904";
+
+let products = [];
+let qty = {};
+
+fetch(API_URL)
+.then(res => res.json())
+.then(data => {
+  products = data;
+  render();
+});
+
+function render(){
+  let html = "";
+
+  products.forEach((p,i)=>{
+    html += `
+    <div class="card">
+      <img src="${p.image}" alt="${p.name}">
+      <div class="card-body">
+        <h4>${p.name}</h4>
+        <div class="price">₹${p.price}</div>
+
+        <div class="qty">
+          <button onclick="change(${i},-1)">-</button>
+          <span id="q${i}">0</span>
+          <button onclick="change(${i},1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById("items").innerHTML = html;
+}
+
+function change(i,val){
+  qty[i] = (qty[i] || 0) + val;
+  if(qty[i] < 0) qty[i] = 0;
+
+  document.getElementById("q"+i).innerText = qty[i];
+  calc();
+}
+
+function calc(){
+  let total = 0;
+
+  products.forEach((p,i)=>{
+    total += (qty[i] || 0) * p.price;
+  });
+
+  document.getElementById("total").innerText = total;
+}
+
+function placeOrder(){
+
+  let name = document.getElementById("name").value.trim();
+  let mobile = document.getElementById("mobile").value.trim();
+
+  if(!name || !mobile){
+    alert("Please enter name and mobile");
+    return;
+  }
+
+  let itemsText = "";
+  let message = "🛒 *New Order*%0A";
+
+  products.forEach((p,i)=>{
+    if(qty[i] > 0){
+      itemsText += `${p.name} x${qty[i]}, `;
+      message += `• ${p.name} x${qty[i]} = ₹${p.price * qty[i]}%0A`;
+    }
+  });
+
+  let total = document.getElementById("total").innerText;
+
+  if(total == 0){
+    alert("Please select at least one item");
+    return;
+  }
+
+  message += `%0A💰 Total: ₹${total}`;
+
+  // Save to Google Sheet
+  fetch(API_URL,{
+    method:"POST",
+    body: JSON.stringify({
+      name:name,
+      mobile:mobile,
+      items:itemsText,
+      total:total
+    })
+  });
+
+  // WhatsApp
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
+}
+
+</script>
+
+</body>
+</html>
