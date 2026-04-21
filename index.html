@@ -1,234 +1,328 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Ruby Electronics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+* { box-sizing: border-box; }
+
 body {
-  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  background: #f1f5f9;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f8fb;
 }
 
+/* SPLASH */
+#splash {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+}
+#splash img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* HEADER */
 header {
-  background: linear-gradient(90deg,#0ea5e9,#0284c7);
+  background: #0d6efd;
   color: white;
-  padding: 15px;
   text-align: center;
-  font-size: 22px;
-  font-weight: bold;
+  padding: 14px;
+  font-size: 18px;
 }
 
+/* CATEGORY */
+.categories {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+  gap: 8px;
+  background: white;
+}
+.cat-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #e3f0ff;
+  cursor: pointer;
+}
+.active {
+  background: #0d6efd;
+  color: white;
+}
+
+/* PRODUCTS */
 .container {
-  padding: 15px;
+  padding: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(2,1fr);
+  gap: 10px;
 }
 
 .card {
   background: white;
-  border-radius: 15px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-  transition: 0.3s;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
 .card img {
   width: 100%;
-  height: 140px;
+  height: 110px;
   object-fit: cover;
 }
-
 .card-body {
-  padding: 10px;
+  padding: 8px;
 }
-
-.card h4 {
-  margin: 5px 0;
-  font-size: 15px;
-}
-
 .price {
-  color: #0ea5e9;
+  color: #0d6efd;
   font-weight: bold;
 }
 
+/* QTY */
 .qty {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
 }
-
 .qty button {
-  padding: 5px 10px;
-  border: none;
-  background: #0ea5e9;
+  background: #0d6efd;
   color: white;
+  border: none;
+  padding: 4px 8px;
   border-radius: 5px;
-  cursor: pointer;
 }
 
-.cart {
+/* ORDER BAR */
+#orderBar {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background: white;
-  padding: 12px;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
-}
-
-.total {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-input {
-  width: 48%;
   padding: 10px;
-  margin: 5px 1%;
+  display: none;
+}
+.order-btn {
+  width: 100%;
+  padding: 14px;
+  background: #0d6efd;
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+/* MODAL */
+.modal {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 0;
+  background: rgba(0,0,0,0.5);
+  transition: 0.3s;
+}
+
+.modal.active {
+  height: 100%;
+}
+
+.modal-content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 85%;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 12px;
+  background: #0d6efd;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.modal-footer {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
   border-radius: 8px;
   border: 1px solid #ddd;
 }
 
-.order-btn {
-  width: 100%;
-  padding: 14px;
-  background: #22c55e;
-  color: white;
-  border: none;
-  font-size: 16px;
-  border-radius: 10px;
+.back-btn {
   cursor: pointer;
-}
-
-.order-btn:hover {
-  background: #16a34a;
 }
 </style>
 </head>
 
 <body>
 
+<div id="splash">
+<img src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f">
+</div>
+
 <header>Ruby Electronics</header>
 
+<div class="categories" id="cats"></div>
 <div class="container" id="items"></div>
 
-<div class="cart">
-  <div class="total">Total: ₹<span id="total">0</span></div>
+<div id="orderBar">
+<button class="order-btn" onclick="openForm()">PLACE ORDER</button>
+</div>
 
-  <input id="name" placeholder="Your Name">
-  <input id="mobile" placeholder="Mobile Number">
+<div class="modal" id="formModal">
+  <div class="modal-content">
 
-  <button class="order-btn" onclick="placeOrder()">Place Order</button>
+    <div class="modal-header">
+      <span class="back-btn" onclick="closeForm()">← Back</span>
+      <span>Enter Details</span>
+      <span></span>
+    </div>
+
+    <div class="modal-body">
+      <input id="name" placeholder="Name">
+      <input id="mobile" placeholder="Mobile">
+      <textarea id="address" placeholder="Address"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="order-btn" onclick="placeOrder()">Submit Order</button>
+    </div>
+
+  </div>
 </div>
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzCsOlW9knh_MF2sF_k0sesgeB7KvgS3oQhx3hydoLfKkIH8GSZxZ8nGPN-V_DydE-Uig/exec";
-const WHATSAPP_NUMBER = "917838837904";
+const API_URL = "https://script.google.com/macros/s/AKfycbxW0sr29AJiCzfT1ATohTtxhy6zDqUnr0VrbL6Ir8gNCbdJuyCWTwwP1muumQi1suQXtw/exec";
+const PHONE = "917838837904";
 
-let products = [];
-let qty = {};
+let products=[], qty={}, currentCat="All", categories=[];
 
+setTimeout(()=>{document.getElementById("splash").style.display="none";},2000);
+
+// FETCH
 fetch(API_URL)
-.then(res => res.json())
-.then(data => {
-  products = data;
-  render();
+.then(res=>res.json())
+.then(data=>{
+  products = data.map(p => ({
+    ...p,
+    category: p.category && p.category.trim() ? p.category : "Accessories"
+  }));
+
+  categories = ["All", ...new Set(products.map(p=>p.category))];
+
+  renderCats();
+  renderProducts();
 });
 
-function render(){
-  let html = "";
-
-  products.forEach((p,i)=>{
-    html += `
-    <div class="card">
-      <img src="${p.image}" alt="${p.name}">
-      <div class="card-body">
-        <h4>${p.name}</h4>
-        <div class="price">₹${p.price}</div>
-
-        <div class="qty">
-          <button onclick="change(${i},-1)">-</button>
-          <span id="q${i}">0</span>
-          <button onclick="change(${i},1)">+</button>
-        </div>
-      </div>
-    </div>`;
+function renderCats(){
+  let html="";
+  categories.forEach(c=>{
+    html+=`<div class="cat-btn" onclick="selectCat('${c}')">${c}</div>`;
   });
+  document.getElementById("cats").innerHTML=html;
+}
 
-  document.getElementById("items").innerHTML = html;
+function selectCat(c){
+  currentCat=c;
+  renderProducts();
+}
+
+function renderProducts(){
+  let html="";
+  products.forEach((p,i)=>{
+    if(currentCat==="All" || p.category===currentCat){
+      html+=`
+      <div class="card">
+        <img src="${p.image}">
+        <div class="card-body">
+          ${p.name}
+          <div class="price">₹${p.price}</div>
+
+          <div class="qty">
+            <button onclick="change(${i},-1)">-</button>
+            <span id="q${i}">0</span>
+            <button onclick="change(${i},1)">+</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  });
+  document.getElementById("items").innerHTML=html;
 }
 
 function change(i,val){
-  qty[i] = (qty[i] || 0) + val;
-  if(qty[i] < 0) qty[i] = 0;
+  qty[i]=(qty[i]||0)+val;
+  if(qty[i]<0) qty[i]=0;
 
-  document.getElementById("q"+i).innerText = qty[i];
-  calc();
+  document.getElementById("q"+i).innerText=qty[i];
+
+  document.getElementById("orderBar").style.display =
+    Object.values(qty).some(q=>q>0) ? "block":"none";
 }
 
-function calc(){
-  let total = 0;
-
-  products.forEach((p,i)=>{
-    total += (qty[i] || 0) * p.price;
-  });
-
-  document.getElementById("total").innerText = total;
+function openForm(){
+  document.getElementById("formModal").classList.add("active");
+}
+function closeForm(){
+  document.getElementById("formModal").classList.remove("active");
 }
 
 function placeOrder(){
 
-  let name = document.getElementById("name").value.trim();
-  let mobile = document.getElementById("mobile").value.trim();
+  let name=document.getElementById("name").value;
+  let mobile=document.getElementById("mobile").value;
+  let address=document.getElementById("address").value;
 
   if(!name || !mobile){
-    alert("Please enter name and mobile");
+    alert("Fill Name & Mobile");
     return;
   }
 
-  let itemsText = "";
-  let message = "🛒 *New Order*%0A";
+  let msg = "*New Order Request - Ruby Electronics*%0A%0A";
+  msg += "[Order Details]%0A";
+
+  let total = 0;
 
   products.forEach((p,i)=>{
-    if(qty[i] > 0){
-      itemsText += `${p.name} x${qty[i]}, `;
-      message += `• ${p.name} x${qty[i]} = ₹${p.price * qty[i]}%0A`;
+    if(qty[i]>0){
+      let itemTotal = p.price * qty[i];
+      total += itemTotal;
+      msg += `- ${p.name} (Rs.${p.price}) x${qty[i]} = Rs.${itemTotal}%0A`;
     }
   });
 
-  let total = document.getElementById("total").innerText;
+  msg += `%0ATotal Amount: Rs.${total}%0A%0A`;
 
-  if(total == 0){
-    alert("Please select at least one item");
-    return;
-  }
+  msg += "[Customer Details]%0A";
+  msg += `Name: ${name}%0A`;
+  msg += `Mobile: ${mobile}%0A`;
+  msg += `Address: ${address}%0A%0A`;
 
-  message += `%0A💰 Total: ₹${total}`;
+  msg += "Please confirm this order.";
 
-  // Save to Google Sheet
   fetch(API_URL,{
     method:"POST",
-    body: JSON.stringify({
-      name:name,
-      mobile:mobile,
-      items:itemsText,
-      total:total
-    })
+    body:JSON.stringify({name,mobile,address,items:msg})
   });
 
-  // WhatsApp
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
+  window.open(`https://wa.me/${PHONE}?text=${msg}`);
 }
 
 </script>
